@@ -1,18 +1,30 @@
 import time
 
+from cairo_renderer import CairoRenderer
 from monster_manager import MonsterManager
 from process_watcher import ProcessWatcher
 
 
 watcher = ProcessWatcher()
-manager = MonsterManager()
+
+renderer = CairoRenderer(
+    width=1280,
+    height=720,
+)
+
+manager = MonsterManager(
+    world_width=renderer.width,
+    world_height=renderer.height,
+)
 
 
 last_time = time.monotonic()
 last_process_refresh = 0.0
 
+frame = 0
 
-while True:
+
+while frame < 120:
     current_time = time.monotonic()
 
     dt = current_time - last_time
@@ -27,14 +39,14 @@ while True:
 
     manager.update(dt)
 
-    for monster in manager.monsters.values():
-        print(
-            monster.pid,
-            monster.species,
-            f"x={monster.x:.2f}",
-            f"cpu={monster.cpu:.1f}",
-        )
+    renderer.render(
+        manager.monsters.values()
+    )
 
-    print("----------------")
+    renderer.write_to_png(
+        f"frame-{frame:04d}.png"
+    )
 
-    time.sleep(0.1)
+    frame += 1
+
+    time.sleep(1.0 / 30.0)
